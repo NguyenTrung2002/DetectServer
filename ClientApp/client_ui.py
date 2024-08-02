@@ -11,14 +11,14 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow(object):
+class Ui_MainWindow:
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(679, 584)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(170, 20, 339, 78))
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(170, 20, 339, 31))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
@@ -34,7 +34,7 @@ class Ui_MainWindow(object):
         self.disconnectBut.setObjectName("disconnectBut")
         self.horizontalLayout.addWidget(self.disconnectBut)
         self.horizontalLayoutWidget_2 = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget_2.setGeometry(QtCore.QRect(40, 110, 601, 271))
+        self.horizontalLayoutWidget_2.setGeometry(QtCore.QRect(50, 60, 601, 271))
         self.horizontalLayoutWidget_2.setObjectName("horizontalLayoutWidget_2")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget_2)
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
@@ -52,7 +52,7 @@ class Ui_MainWindow(object):
         self.imageDetectLab.setObjectName("imageDetectLab")
         self.horizontalLayout_2.addWidget(self.imageDetectLab)
         self.chatTextEdit = QtWidgets.QTextEdit(self.centralwidget)
-        self.chatTextEdit.setGeometry(QtCore.QRect(40, 390, 601, 161))
+        self.chatTextEdit.setGeometry(QtCore.QRect(50, 350, 601, 161))
         self.chatTextEdit.setObjectName("chatTextEdit")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
