@@ -11,14 +11,14 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow:
+class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(703, 580)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(50, 50, 601, 271))
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(100, 50, 511, 231))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
@@ -53,6 +53,18 @@ class Ui_MainWindow:
         self.chatTextEdit = QtWidgets.QTextEdit(self.centralwidget)
         self.chatTextEdit.setGeometry(QtCore.QRect(230, 330, 421, 191))
         self.chatTextEdit.setObjectName("chatTextEdit")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(90, 310, 91, 16))
+        self.label.setObjectName("label")
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setGeometry(QtCore.QRect(420, 310, 61, 16))
+        self.label_2.setObjectName("label_2")
+        self.sendLine = QtWidgets.QLineEdit(self.centralwidget)
+        self.sendLine.setGeometry(QtCore.QRect(230, 530, 341, 20))
+        self.sendLine.setObjectName("sendLine")
+        self.sendButton = QtWidgets.QPushButton(self.centralwidget)
+        self.sendButton.setGeometry(QtCore.QRect(580, 530, 75, 23))
+        self.sendButton.setObjectName("sendButton")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -66,6 +78,9 @@ class Ui_MainWindow:
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.connectBut.setText(_translate("MainWindow", "Khởi động"))
         self.disconnectBut.setText(_translate("MainWindow", "Ngắt kết nối"))
+        self.label.setText(_translate("MainWindow", "Danh sách kết nôi"))
+        self.label_2.setText(_translate("MainWindow", "Trò chuyện"))
+        self.sendButton.setText(_translate("MainWindow", "Gửi"))
 
 
 if __name__ == "__main__":
