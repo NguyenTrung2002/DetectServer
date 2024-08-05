@@ -11,7 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow:
+class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(679, 584)
@@ -54,6 +54,12 @@ class Ui_MainWindow:
         self.chatTextEdit = QtWidgets.QTextEdit(self.centralwidget)
         self.chatTextEdit.setGeometry(QtCore.QRect(50, 350, 601, 161))
         self.chatTextEdit.setObjectName("chatTextEdit")
+        self.sendLine = QtWidgets.QLineEdit(self.centralwidget)
+        self.sendLine.setGeometry(QtCore.QRect(50, 520, 511, 20))
+        self.sendLine.setObjectName("sendLine")
+        self.sendButton = QtWidgets.QPushButton(self.centralwidget)
+        self.sendButton.setGeometry(QtCore.QRect(580, 520, 75, 23))
+        self.sendButton.setObjectName("sendButton")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -67,6 +73,7 @@ class Ui_MainWindow:
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.connectBut.setText(_translate("MainWindow", "Kết nối với Server"))
         self.disconnectBut.setText(_translate("MainWindow", "Ngắt kết nối"))
+        self.sendButton.setText(_translate("MainWindow", "PushButton"))
 
 
 if __name__ == "__main__":
