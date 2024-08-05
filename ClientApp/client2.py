@@ -2,10 +2,10 @@ import socket
 
 
 class Client:
-    def __init__(self, HOST = socket.gethostname(), PORT = 22222):
-        self.HOST = HOST
-        self.PORT = PORT
+    def __init__(self):
+        self.HOST = socket.gethostname()
         self.IP = socket.gethostbyname(self.HOST)
+        self.PORT = 12345
         self.socket_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def connect_to_server(self):
