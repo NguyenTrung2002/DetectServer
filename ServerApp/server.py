@@ -1,13 +1,14 @@
 import socket
 import threading
 from server_ui import Ui_MainWindow
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
+# from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 import sys
 
 
 class Server:
-    def __init__(self, host, port, update_client_list_callback):
+    def __init__(self, host, port, update_client_list_callback, show_message_callback):
         self.host = host
         self.port = port
         self.ip = socket.gethostbyname(host)
@@ -18,6 +19,7 @@ class Server:
         self.server_thread = None
         self.running = False
         self.update_client_list_callback = update_client_list_callback
+        self.show_message_callback = show_message_callback
 
     def connect_to_client(self):
         self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -38,6 +40,7 @@ class Server:
                     if not data:
                         break
                     string = data.decode('utf-8')
+                    self.show_message_callback(client_address, string)
                     print(f"{client_address}: {string}")
                 except (ConnectionResetError, ConnectionAbortedError, OSError):
                     break
@@ -82,31 +85,38 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.client_model = QStandardItemModel()
         self.connectedList.setModel(self.client_model)
-        self.server = Server(host=socket.gethostname(), port=22222, update_client_list_callback=self.update_client_list)
+        self.server = Server(host=socket.gethostname(),
+                             port=22222,
+                             update_client_list_callback=self.update_client_list,
+                             show_message_callback=self.get_message)
         self.connectBut.clicked.connect(self.start_server)
         self.disconnectBut.clicked.connect(self.stop_server)
 
     def start_server(self):
         self.server.start()
-        self.chatTextEdit.append("Server started...")
+        self.manaTextEdit.append("Server started...")
 
     def stop_server(self):
         self.server.stop()
-        self.chatTextEdit.append("Server stopped...")
+        self.manaTextEdit.append("Server stopped...")
 
     def update_client_list(self, client_address, connected):
         address_str = f"{client_address[0]}:{client_address[1]}"
         if connected:
             item = QStandardItem(address_str)
             self.client_model.appendRow(item)
-            self.chatTextEdit.append(f"Client connected: {address_str}\n")
+            self.manaTextEdit.append(f"Client connected: {address_str}\n")
         else:
             for row in range(self.client_model.rowCount()):
                 item = self.client_model.item(row)
                 if item.text() == address_str:
                     self.client_model.removeRow(row)
                     break
-            self.chatTextEdit.append(f"Client disconnected: {address_str}\n")
+            self.manaTextEdit.append(f"Client disconnected: {address_str}\n")
+
+    def get_message(self, client_address, message):
+        address_str = f"{client_address[0]}:{client_address[1]}"
+        self.chatTextEdit.append(f"{address_str}: {message}")
 
     def get_image(self):
         pass

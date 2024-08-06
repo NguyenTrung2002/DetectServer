@@ -8,37 +8,52 @@ import sys
 
 class Client:
     def __init__(self, host, port):
+        self.socket_client = None
         self.host = host
         self.port = port
         self.ip = socket.gethostbyname(self.host)
-        self.socket_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def connect_to_server(self):
+    def start(self):
+        self.socket_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket_client.connect((self.ip, self.port))
         print("Kết nối tới server thành công")
-
-    def send_message(self, msg):
-        data = msg.encode('utf-8')
-        self.socket_client.sendall(data)
-        print("Đã gửi tin nhắn")
 
     def send_image(self):
         pass
 
-    def start(self):
-        self.connect_to_server()
+    def send_message(self):
+        self.start()
         while True:
             msg = input("Gửi tin nhắn: ")
             if msg == 'q':
                 self.close()
                 break
-            self.send_message(msg)
+            data = msg.encode('utf-8')
+            self.socket_client.sendall(data)
+            print("Đã gửi tin nhắn")
 
     def close(self):
         self.socket_client.close()
         print("Đã ngắt kết nối với server")
 
 
+class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
+    def __init__(self):
+        super(MainApp, self).__init__()
+        self.setupUi(self)
+
+    def connect_server(self):
+        pass
+
+    def disconnect_server(self):
+        pass
+
+    def send_message(self):
+        pass
+
+
 if __name__ == '__main__':
-    client = Client(host=socket.gethostname(), port=22222)
-    client.start()
+    app = QtWidgets.QApplication(sys.argv)
+    main_window = MainApp()
+    main_window.show()
+    sys.exit(app.exec_())
