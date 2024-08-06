@@ -51,7 +51,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit">
+      <widget class="QLineEdit" name="portLine">
        <property name="placeholderText">
         <string>Nhập cổng port</string>
        </property>
@@ -127,7 +127,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="sendButton">
+   <widget class="QPushButton" name="sendBut">
     <property name="geometry">
      <rect>
       <x>580</x>

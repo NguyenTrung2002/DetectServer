@@ -39,7 +39,7 @@ class Server:
                     data = client_socket.recv(4096)
                     if not data:
                         break
-                    string = data.decode('utf-8')
+                    string = data.decode('utf-8', 'backslashreplace')
                     self.show_message_callback(client_address, string)
                     print(f"{client_address}: {string}")
                 except (ConnectionResetError, ConnectionAbortedError, OSError):
@@ -105,14 +105,14 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         if connected:
             item = QStandardItem(address_str)
             self.client_model.appendRow(item)
-            self.manaTextEdit.append(f"Client connected: {address_str}\n")
+            self.manaTextEdit.append(f"Client connected: {address_str}")
         else:
             for row in range(self.client_model.rowCount()):
                 item = self.client_model.item(row)
                 if item.text() == address_str:
                     self.client_model.removeRow(row)
                     break
-            self.manaTextEdit.append(f"Client disconnected: {address_str}\n")
+            self.manaTextEdit.append(f"Client disconnected: {address_str}")
 
     def get_message(self, client_address, message):
         address_str = f"{client_address[0]}:{client_address[1]}"
