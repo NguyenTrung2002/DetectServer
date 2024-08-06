@@ -14,13 +14,11 @@ class Client:
         self.ip = socket.gethostbyname(self.host)
         self.socket_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connected = False
+
     def start(self):
         self.connected = True
         self.socket_client.connect((self.ip, self.port))
         print("Kết nối tới server thành công")
-
-    def send_image(self):
-        pass
 
     def send_message(self):
         # while self.connected
@@ -34,6 +32,7 @@ class Client:
         #     self.socket_client.sendall(data)
         #     print("Đã gửi tin nhắn")
         pass
+
     def close(self):
         self.socket_client.close()
         print("Đã ngắt kết nối với server")
@@ -49,6 +48,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.connectBut.clicked.connect(self.connect_server)
         self.disconnectBut.clicked.connect(self.disconnect_server)
         self.sendBut.clicked.connect(self.send_message)
+
     def connect_server(self):
         self.client = Client(host=self.ipLine.text(),
                              port=self.portLine.text())
@@ -67,9 +67,11 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.connectBut.setDisabled(False)
         self.disconnectBut.setDisabled(True)
         self.sendBut.setDisabled(True)
+
     def send_message(self):
         data = self.sendLine.text().encode('utf-8')
         self.client.socket_client.sendall(data)
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

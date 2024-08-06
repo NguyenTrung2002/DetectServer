@@ -25,7 +25,7 @@ class Server:
         self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket_server.bind((self.ip, self.port))
         self.socket_server.listen()
-        print("Đang chờ kết nối")
+        print(f"Đang chờ kết nối {self.ip}")
 
     def handle_client(self, client_socket, client_address):
         if client_socket:
