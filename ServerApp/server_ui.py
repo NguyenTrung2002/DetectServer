@@ -64,9 +64,9 @@ class Ui_MainWindow(object):
         self.sendLine = QtWidgets.QLineEdit(self.centralwidget)
         self.sendLine.setGeometry(QtCore.QRect(440, 530, 131, 20))
         self.sendLine.setObjectName("sendLine")
-        self.sendButton = QtWidgets.QPushButton(self.centralwidget)
-        self.sendButton.setGeometry(QtCore.QRect(580, 530, 75, 23))
-        self.sendButton.setObjectName("sendButton")
+        self.sendBut = QtWidgets.QPushButton(self.centralwidget)
+        self.sendBut.setGeometry(QtCore.QRect(580, 530, 75, 23))
+        self.sendBut.setObjectName("sendBut")
         self.manaTextEdit = QtWidgets.QTextBrowser(self.centralwidget)
         self.manaTextEdit.setGeometry(QtCore.QRect(230, 330, 201, 192))
         self.manaTextEdit.setObjectName("manaTextEdit")
@@ -88,7 +88,7 @@ class Ui_MainWindow(object):
         self.disconnectBut.setText(_translate("MainWindow", "Ngắt kết nối"))
         self.label.setText(_translate("MainWindow", "Danh sách kết nôi"))
         self.label_2.setText(_translate("MainWindow", "Trò chuyện"))
-        self.sendButton.setText(_translate("MainWindow", "Gửi"))
+        self.sendBut.setText(_translate("MainWindow", "Gửi"))
         self.label_3.setText(_translate("MainWindow", "Quản lý kết nối"))
 
 

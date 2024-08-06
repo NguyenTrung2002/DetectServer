@@ -43,7 +43,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         super(MainApp, self).__init__()
         self.client = None
         self.setupUi(self)
-        self.disconnectBut.setDisabled(False)
+        self.disconnectBut.setDisabled(True)
         self.sendBut.setDisabled(True)
         self.connectBut.clicked.connect(self.connect_server)
         self.disconnectBut.clicked.connect(self.disconnect_server)

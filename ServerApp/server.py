@@ -85,6 +85,8 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.client_model = QStandardItemModel()
         self.connectedList.setModel(self.client_model)
+        self.disconnectBut.setDisabled(True)
+        self.sendBut.setDisabled(True)
         self.server = Server(host=socket.gethostname(),
                              port=22222,
                              update_client_list_callback=self.update_client_list,
@@ -95,10 +97,15 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def start_server(self):
         self.server.start()
         self.manaTextEdit.append("Server started...")
-
+        self.connectBut.setDisabled(True)
+        self.disconnectBut.setDisabled(False)
+        self.sendBut.setDisabled(False)
     def stop_server(self):
         self.server.stop()
         self.manaTextEdit.append("Server stopped...")
+        self.connectBut.setDisabled(False)
+        self.disconnectBut.setDisabled(True)
+        self.sendBut.setDisabled(True)
 
     def update_client_list(self, client_address, connected):
         address_str = f"{client_address[0]}:{client_address[1]}"
