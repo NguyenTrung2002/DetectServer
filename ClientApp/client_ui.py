@@ -11,14 +11,14 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow:
+class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(679, 584)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(170, 20, 339, 31))
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(108, 20, 471, 31))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
@@ -27,9 +27,15 @@ class Ui_MainWindow:
         self.connectBut.setObjectName("connectBut")
         self.horizontalLayout.addWidget(self.connectBut)
         self.ipLine = QtWidgets.QLineEdit(self.horizontalLayoutWidget)
+        self.ipLine.setToolTip("")
+        self.ipLine.setStatusTip("")
+        self.ipLine.setWhatsThis("")
         self.ipLine.setText("")
         self.ipLine.setObjectName("ipLine")
         self.horizontalLayout.addWidget(self.ipLine)
+        self.portLine = QtWidgets.QLineEdit(self.horizontalLayoutWidget)
+        self.portLine.setObjectName("portLine")
+        self.horizontalLayout.addWidget(self.portLine)
         self.disconnectBut = QtWidgets.QPushButton(self.horizontalLayoutWidget)
         self.disconnectBut.setObjectName("disconnectBut")
         self.horizontalLayout.addWidget(self.disconnectBut)
@@ -53,7 +59,14 @@ class Ui_MainWindow:
         self.horizontalLayout_2.addWidget(self.imageDetectLab)
         self.chatTextEdit = QtWidgets.QTextEdit(self.centralwidget)
         self.chatTextEdit.setGeometry(QtCore.QRect(50, 350, 601, 161))
+        self.chatTextEdit.setReadOnly(True)
         self.chatTextEdit.setObjectName("chatTextEdit")
+        self.sendLine = QtWidgets.QLineEdit(self.centralwidget)
+        self.sendLine.setGeometry(QtCore.QRect(50, 520, 511, 20))
+        self.sendLine.setObjectName("sendLine")
+        self.sendBut = QtWidgets.QPushButton(self.centralwidget)
+        self.sendBut.setGeometry(QtCore.QRect(580, 520, 75, 23))
+        self.sendBut.setObjectName("sendBut")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -66,7 +79,10 @@ class Ui_MainWindow:
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.connectBut.setText(_translate("MainWindow", "Kết nối với Server"))
+        self.ipLine.setPlaceholderText(_translate("MainWindow", "Nhập địa chỉ IP"))
+        self.portLine.setPlaceholderText(_translate("MainWindow", "Nhập cổng port"))
         self.disconnectBut.setText(_translate("MainWindow", "Ngắt kết nối"))
+        self.sendBut.setText(_translate("MainWindow", "PushButton"))
 
 
 if __name__ == "__main__":

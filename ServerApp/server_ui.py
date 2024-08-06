@@ -11,14 +11,14 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow:
+class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(703, 580)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(50, 50, 601, 271))
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(50, 50, 601, 241))
         self.horizontalLayoutWidget.setObjectName("horizontalLayoutWidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
@@ -48,11 +48,31 @@ class Ui_MainWindow:
         self.disconnectBut.setObjectName("disconnectBut")
         self.horizontalLayout_2.addWidget(self.disconnectBut)
         self.connectedList = QtWidgets.QListView(self.centralwidget)
+        self.connectedList.setEnabled(True)
         self.connectedList.setGeometry(QtCore.QRect(50, 330, 171, 192))
         self.connectedList.setObjectName("connectedList")
         self.chatTextEdit = QtWidgets.QTextEdit(self.centralwidget)
-        self.chatTextEdit.setGeometry(QtCore.QRect(230, 330, 421, 191))
+        self.chatTextEdit.setGeometry(QtCore.QRect(440, 330, 211, 191))
+        self.chatTextEdit.setReadOnly(True)
         self.chatTextEdit.setObjectName("chatTextEdit")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(90, 310, 91, 16))
+        self.label.setObjectName("label")
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setGeometry(QtCore.QRect(520, 310, 61, 16))
+        self.label_2.setObjectName("label_2")
+        self.sendLine = QtWidgets.QLineEdit(self.centralwidget)
+        self.sendLine.setGeometry(QtCore.QRect(440, 530, 131, 20))
+        self.sendLine.setObjectName("sendLine")
+        self.sendBut = QtWidgets.QPushButton(self.centralwidget)
+        self.sendBut.setGeometry(QtCore.QRect(580, 530, 75, 23))
+        self.sendBut.setObjectName("sendBut")
+        self.manaTextEdit = QtWidgets.QTextBrowser(self.centralwidget)
+        self.manaTextEdit.setGeometry(QtCore.QRect(230, 330, 201, 192))
+        self.manaTextEdit.setObjectName("manaTextEdit")
+        self.label_3 = QtWidgets.QLabel(self.centralwidget)
+        self.label_3.setGeometry(QtCore.QRect(300, 310, 71, 16))
+        self.label_3.setObjectName("label_3")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -66,6 +86,10 @@ class Ui_MainWindow:
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.connectBut.setText(_translate("MainWindow", "Khởi động"))
         self.disconnectBut.setText(_translate("MainWindow", "Ngắt kết nối"))
+        self.label.setText(_translate("MainWindow", "Danh sách kết nôi"))
+        self.label_2.setText(_translate("MainWindow", "Trò chuyện"))
+        self.sendBut.setText(_translate("MainWindow", "Gửi"))
+        self.label_3.setText(_translate("MainWindow", "Quản lý kết nối"))
 
 
 if __name__ == "__main__":
