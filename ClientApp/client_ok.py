@@ -40,6 +40,12 @@ class Client:
             except ConnectionResetError:
                 self.connected = False
                 break
+            except ConnectionAbortedError:
+                self.connected = False
+                break
+            except OSError:
+                self.connected = False
+                break
 
 class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
