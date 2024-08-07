@@ -1,4 +1,4 @@
-#CODE HIỆN TẠI
+#CODE TEST
 import socket
 import threading
 from server_ui import Ui_MainWindow

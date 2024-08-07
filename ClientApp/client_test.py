@@ -1,4 +1,4 @@
-#CODE HIỆN TẠI
+#CODE TEST
 import socket
 import sys
 from client_ui import Ui_MainWindow

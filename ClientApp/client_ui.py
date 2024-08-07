@@ -82,7 +82,7 @@ class Ui_MainWindow(object):
         self.ipLine.setPlaceholderText(_translate("MainWindow", "Nhập địa chỉ IP"))
         self.portLine.setPlaceholderText(_translate("MainWindow", "Nhập cổng port"))
         self.disconnectBut.setText(_translate("MainWindow", "Ngắt kết nối"))
-        self.sendBut.setText(_translate("MainWindow", "PushButton"))
+        self.sendBut.setText(_translate("MainWindow", "Gửi"))
 
 
 if __name__ == "__main__":
