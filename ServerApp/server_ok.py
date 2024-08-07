@@ -1,11 +1,10 @@
+#CODE HOÀN THIỆN (LÀM MẪU)
 import socket
 import threading
 from server_ui import Ui_MainWindow
-from PyQt5 import QtWidgets
-# from PyQt5 import QtCore, QtGui
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 import sys
-
 
 class Server:
     def __init__(self, host, port, update_client_list_callback, show_message_callback):
@@ -16,6 +15,7 @@ class Server:
         self.count = 0
         self.count_lock = threading.Lock()
         self.client_sockets = []
+        self.client_addresses = {}  # Dictionary to map client sockets to addresses
         self.server_thread = None
         self.running = False
         self.update_client_list_callback = update_client_list_callback
@@ -34,6 +34,7 @@ class Server:
                 print(f"Đã kết nối với client {client_address}, hiện đang có {self.count} kết nối")
                 self.update_client_list_callback(client_address, True)
             self.client_sockets.append(client_socket)
+            self.client_addresses[client_socket] = client_address
             while self.running:
                 try:
                     data = client_socket.recv(4096)
@@ -48,6 +49,7 @@ class Server:
                 self.count -= 1
                 print(f"{client_address} đã thoát, hiện tại còn {self.count} kết nối")
                 self.client_sockets.remove(client_socket)
+                del self.client_addresses[client_socket]
                 self.update_client_list_callback(client_address, False)
             client_socket.close()
 
@@ -78,6 +80,30 @@ class Server:
         self.socket_server = None
         print("\nĐã ngắt kết nối")
 
+    def send_message(self, message, target_client=None):
+        data = message.encode('utf-8')
+        if target_client:
+            thread_send = threading.Thread(target=self.send_to_client, args=(target_client, data))
+            thread_send.start()
+        else:
+            thread_send = threading.Thread(target=self.send_to_all_clients, args=(data,))
+            thread_send.start()
+
+    def send_to_client(self, client_socket, data):
+        try:
+            client_socket.sendall(data)
+            print(f"Đã gửi tin nhắn tới {client_socket.getpeername()}")
+        except socket.error as e:
+            print(f"Lỗi khi gửi tin nhắn tới {client_socket.getpeername()}: {e}")
+
+    def send_to_all_clients(self, data):
+        for client_socket in self.client_sockets:
+            try:
+                client_socket.sendall(data)
+                print(f"Đã gửi tin nhắn tới {client_socket.getpeername()}")
+            except socket.error as e:
+                print(f"Lỗi khi gửi tin nhắn tới {client_socket.getpeername()}: {e}")
+
 
 class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -85,6 +111,8 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.client_model = QStandardItemModel()
         self.connectedList.setModel(self.client_model)
+        self.connectedList.clicked.connect(self.on_client_selected)  # Event to handle client selection
+        self.selected_client = None
         self.disconnectBut.setDisabled(True)
         self.sendBut.setDisabled(True)
         self.server = Server(host=socket.gethostname(),
@@ -93,6 +121,8 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
                              show_message_callback=self.get_message)
         self.connectBut.clicked.connect(self.start_server)
         self.disconnectBut.clicked.connect(self.stop_server)
+        self.sendBut.clicked.connect(self.send_message)
+        self.centralwidget.installEventFilter(self)  # Install event filter to detect click outside QListView
 
     def start_server(self):
         self.server.start()
@@ -100,6 +130,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.connectBut.setDisabled(True)
         self.disconnectBut.setDisabled(False)
         self.sendBut.setDisabled(False)
+
     def stop_server(self):
         self.server.stop()
         self.manaTextEdit.append("Server stopped...")
@@ -111,6 +142,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         address_str = f"{client_address[0]}:{client_address[1]}"
         if connected:
             item = QStandardItem(address_str)
+            item.setData(client_address)  # Store client address in item data
             self.client_model.appendRow(item)
             self.manaTextEdit.append(f"Client connected: {address_str}")
         else:
@@ -121,9 +153,41 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
                     break
             self.manaTextEdit.append(f"Client disconnected: {address_str}")
 
+    def on_client_selected(self, index):
+        item = self.client_model.itemFromIndex(index)
+        client_address = item.data()
+        for client_socket, address in self.server.client_addresses.items():
+            if address == client_address:
+                self.selected_client = client_socket
+                break
+
     def get_message(self, client_address, message):
         address_str = f"{client_address[0]}:{client_address[1]}"
         self.chatTextEdit.append(f"{address_str}: {message}")
+
+    def send_message(self):
+        message = self.sendLine.text()
+        if message == '':
+            self.chatTextEdit.append("Vui lòng nhập tin nhắn muốn gửi")
+            return
+        if len(self.server.client_sockets) == 0:
+            self.chatTextEdit.append("Không có kết nối nên không thể gửi")
+            return
+        if self.selected_client:
+            self.server.send_message(message, target_client=self.selected_client)
+            self.chatTextEdit.append(f"Server to {self.selected_client.getpeername()}: {message}")
+        else:
+            self.server.send_message(message)
+            self.chatTextEdit.append(f"Server: {message}")
+        self.sendLine.clear()
+
+    def eventFilter(self, source, event):
+        if event.type() == QtCore.QEvent.MouseButtonPress:
+            if source is self.centralwidget:
+                if not self.connectedList.geometry().contains(event.pos()):
+                    self.connectedList.clearSelection()
+                    self.selected_client = None
+        return super(MainApp, self).eventFilter(source, event)
 
     def get_image(self):
         pass
