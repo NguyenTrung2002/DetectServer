@@ -1,8 +1,12 @@
-#CODE HIỆN TẠI
+# CODE CHÍNH
 import socket
 import sys
+import threading
+
 from client_ui import Ui_MainWindow
 from PyQt5 import QtWidgets
+
+
 # from PyQt5 import QtCore, QtGui
 # from PyQt5.QtGui import QStandardItemModel, QStandardItem
 # import threading
@@ -20,7 +24,6 @@ class Client:
         except:
             raise ValueError
 
-
     def start(self):
         try:
             self.socket_client.connect((self.ip, self.port))
@@ -33,10 +36,30 @@ class Client:
         self.socket_client.close()
         print("Đã ngắt kết nối với server")
 
+    def handle_server(self, callback):
+        while self.connected:
+            try:
+                data = self.socket_client.recv(4096)
+                if data:
+                    string = data.decode('utf-8')
+                    callback(string)
+                else:
+                    self.connected = False
+            except ConnectionResetError:
+                self.connected = False
+                break
+            except ConnectionAbortedError:
+                self.connected = False
+                break
+            except OSError:
+                self.connected = False
+                break
+
 
 class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainApp, self).__init__()
+        self.receiving_thread = None
         self.client = None
         self.setupUi(self)
         self.connectBut.clicked.connect(self.connect_server)
@@ -46,7 +69,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sendBut.setDisabled(True)
 
     def connect_server(self):
-        host=self.ipLine.text()
+        host = self.ipLine.text()
         port = self.portLine.text()
         if host == "" or port == "":
             self.chatTextEdit.append("Chưa nhập IP hoặc PORT")
@@ -63,6 +86,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
                                      f"{self.client.socket_client.getsockname()[0]}:"
                                      f" {self.client.socket_client.getsockname()[1]}"
                                      )
+            self.receiving()
         except ValueError:
             self.chatTextEdit.append("Sai địa chỉ IP")
         except ConnectionRefusedError:
@@ -94,8 +118,12 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.ipLine.setDisabled(False)
             self.portLine.setDisabled(False)
 
-    def get_message(self):
-        pass
+    def receiving(self):
+        self.receiving_thread = threading.Thread(target=self.client.handle_server, args=(self.get_message, ))
+        self.receiving_thread.start()
+
+    def get_message(self, string):
+        self.chatTextEdit.append(f"Server: {string}")
 
 
 if __name__ == '__main__':

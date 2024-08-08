@@ -1,11 +1,13 @@
-#CODE HIỆN TẠI
+# CODE CHÍNH
 import socket
 import threading
 from server_ui import Ui_MainWindow
 from PyQt5 import QtWidgets
 # from PyQt5 import QtCore, QtGui
+from PyQt5.QtWidgets import QListView
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 import sys
+from PyQt5.QtCore import Qt, QModelIndex
 
 
 class Server:
@@ -19,6 +21,7 @@ class Server:
         self.count = 0
         self.count_lock = threading.Lock()
         self.client_sockets = []
+        self.client_addresses = {}
         self.server_thread = None
         self.running = False
         self.update_client_list_callback = update_client_list_callback
@@ -40,6 +43,7 @@ class Server:
                       f" hiện đang có {self.count} kết nối")
                 self.update_client_list_callback(client_address, True)
             self.client_sockets.append(client_socket)
+            self.client_addresses[client_socket] = client_address
             while self.running:
                 try:
                     data = client_socket.recv(4096)
@@ -55,6 +59,7 @@ class Server:
                 print(f"{client_address} đã thoát,"
                       f" hiện tại còn {self.count} kết nối")
                 self.client_sockets.remove(client_socket)
+                del self.client_addresses[client_socket]
                 self.update_client_list_callback(client_address, False)
             client_socket.close()
 
@@ -91,6 +96,7 @@ class Server:
 class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainApp, self).__init__()
+        self.selected_client_address = None
         self.setupUi(self)
         self.client_model = QStandardItemModel()
         self.connectedList.setModel(self.client_model)
@@ -103,12 +109,16 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.connectBut.clicked.connect(self.start_server)
         self.disconnectBut.clicked.connect(self.stop_server)
         self.sendBut.clicked.connect(self.send_message)
+        self.connectedList.setEditTriggers(QListView.NoEditTriggers)
+        self.connectedList.clicked.connect(self.item_clicked)
+
     def start_server(self):
         self.server.start()
         self.manaTextEdit.append("Server started...")
         self.connectBut.setDisabled(True)
         self.disconnectBut.setDisabled(False)
         self.sendBut.setDisabled(False)
+
     def stop_server(self):
         self.server.stop()
         self.manaTextEdit.append("Server stopped...")
@@ -137,10 +147,38 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.chatTextEdit.append(f"{address_str}: {message}")
 
     def send_message(self):
-        # message = self.sendLine.text()
-        # data = message.encode('utf-8')
-        # self.server.socket_server.sendall(data)
-        pass
+        message = self.sendLine.text()
+        data = message.encode('utf-8')
+        if message == '':
+            self.chatTextEdit.append("Vui lòng nhập tin nhắn muốn gửi")
+            return
+        if len(self.server.client_sockets) == 0:
+            self.chatTextEdit.append("Không có kết nối nên không thể gửi")
+            return
+        if self.selected_client_address is None:
+            for client_socket in self.server.client_sockets:
+                client_socket.sendall(data)
+            self.chatTextEdit.append(f"Server: {message}")
+            self.sendLine.clear()
+        else:
+            for client_socket, client_address in self.server.client_addresses.items():
+                if client_address == self.selected_client_address:
+                    client_socket.sendall(data)
+                    self.chatTextEdit.append(f"Server{self.selected_client_address}: {message}")
+                    self.sendLine.clear()
+
+    def item_clicked(self,  index: QModelIndex):
+        self.selected_client_address = self.client_model.data(index, Qt.DisplayRole)
+        self.selected_client_address = tuple(self.selected_client_address.split(':'))
+        self.selected_client_address = (self.selected_client_address[0], int(self.selected_client_address[1]))
+        print(f'You clicked on: {self.selected_client_address}')
+
+    def mousePressEvent(self, event):
+        if not self.connectedList.geometry().contains(event.pos()):
+            self.connectedList.clearSelection()
+        super().mousePressEvent(event)
+        self.selected_client_address = None
+
     def get_image(self):
         pass
 
