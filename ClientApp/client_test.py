@@ -3,10 +3,12 @@ import socket
 import sys
 import threading
 
+from PyQt5.QtCore import Qt
+
 from client_ui import Ui_MainWindow
 from PyQt5 import QtWidgets
-
-
+from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtGui import QPixmap
 # from PyQt5 import QtCore, QtGui
 # from PyQt5.QtGui import QStandardItemModel, QStandardItem
 # import threading
@@ -65,8 +67,10 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.connectBut.clicked.connect(self.connect_server)
         self.disconnectBut.clicked.connect(self.disconnect_server)
         self.sendBut.clicked.connect(self.send_message)
+        self.loadImageBut.clicked.connect(self.load_image)
         self.disconnectBut.setDisabled(True)
         self.sendBut.setDisabled(True)
+        self.loadImageBut.setDisabled(True)
 
     def connect_server(self):
         host = self.ipLine.text()
@@ -82,6 +86,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.sendBut.setDisabled(False)
             self.ipLine.setDisabled(True)
             self.portLine.setDisabled(True)
+            self.loadImageBut.setDisabled(False)
             self.chatTextEdit.append(f"Client connected: "
                                      f"{self.client.socket_client.getsockname()[0]}:"
                                      f" {self.client.socket_client.getsockname()[1]}"
@@ -101,6 +106,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sendBut.setDisabled(True)
         self.ipLine.setDisabled(False)
         self.portLine.setDisabled(False)
+        self.loadImageBut.setDisabled(True)
 
     def send_message(self):
         message = self.sendLine.text()
@@ -117,6 +123,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.sendBut.setDisabled(True)
             self.ipLine.setDisabled(False)
             self.portLine.setDisabled(False)
+            self.loadImageBut.setDisabled(True)
 
     def receiving(self):
         self.receiving_thread = threading.Thread(target=self.client.handle_server, args=(self.get_message, ))
@@ -124,6 +131,16 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def get_message(self, string):
         self.chatTextEdit.append(f"Server: {string}")
+
+    def load_image(self):
+        # Mở hộp thoại chọn tệp để tải ảnh
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", "Image Files (*.png *.jpg *.jpeg *.bmp);;All Files (*)", options=options)
+        if file_path:
+            # Tạo QPixmap từ tệp đã chọn và hiển thị trên QLabel
+            pixmap = QPixmap(file_path)
+            resize_pixmap = pixmap.scaled(self.imageRawLab.size(), Qt.KeepAspectRatio)
+            self.imageRawLab.setPixmap(resize_pixmap)
 
 
 if __name__ == '__main__':

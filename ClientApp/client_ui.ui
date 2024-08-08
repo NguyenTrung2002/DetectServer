@@ -17,9 +17,9 @@
    <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>108</x>
-      <y>20</y>
-      <width>471</width>
+      <x>50</x>
+      <y>10</y>
+      <width>601</width>
       <height>31</height>
      </rect>
     </property>
@@ -64,13 +64,27 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="sendImageBut">
+       <property name="text">
+        <string>Gửi ảnh</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="loadImageBut">
+       <property name="text">
+        <string>Tải ảnh lên</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
    <widget class="QWidget" name="horizontalLayoutWidget_2">
     <property name="geometry">
      <rect>
       <x>50</x>
-      <y>60</y>
+      <y>50</y>
       <width>601</width>
       <height>271</height>
      </rect>
@@ -104,41 +118,38 @@
      </item>
     </layout>
    </widget>
-   <widget class="QTextEdit" name="chatTextEdit">
+   <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
       <x>50</x>
-      <y>350</y>
+      <y>330</y>
       <width>601</width>
-      <height>161</height>
+      <height>231</height>
      </rect>
     </property>
-    <property name="readOnly">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="sendLine">
-    <property name="geometry">
-     <rect>
-      <x>50</x>
-      <y>520</y>
-      <width>511</width>
-      <height>20</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="sendBut">
-    <property name="geometry">
-     <rect>
-      <x>580</x>
-      <y>520</y>
-      <width>75</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Gửi</string>
-    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QTextEdit" name="chatTextEdit">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QLineEdit" name="sendLine"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="sendBut">
+         <property name="text">
+          <string>Gửi</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
