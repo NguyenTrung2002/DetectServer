@@ -1,9 +1,14 @@
-#CODE HOÀN THIỆN (LÀM MẪU)
+# CODE CLIENT
 import socket
 import sys
 import threading
+import cv2
+from ultralytics import YOLO
 from client_ui import Ui_MainWindow
 from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtGui import QPixmap, QImage
+
 
 class Client:
     def __init__(self, host, port):
@@ -28,35 +33,38 @@ class Client:
         self.socket_client.close()
         print("Đã ngắt kết nối với server")
 
-    def receive_messages(self, callback):
+    def handle_server(self, callback):
         while self.connected:
             try:
-                data = self.socket_client.recv(1024)
+                data = self.socket_client.recv(4096)
                 if data:
-                    message = data.decode('utf-8')
-                    callback(message)
+                    string = data.decode('utf-8')
+                    callback(string)
                 else:
                     self.connected = False
-            except ConnectionResetError:
+            except (ConnectionResetError, ConnectionAbortedError, OSError):
                 self.connected = False
                 break
-            except ConnectionAbortedError:
-                self.connected = False
-                break
-            except OSError:
-                self.connected = False
-                break
+
 
 class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainApp, self).__init__()
+        self.image_raw = None
+        self.qimage_raw = None
+        self.qimage_handle = None
+        self.receiving_thread = None
         self.client = None
         self.setupUi(self)
         self.connectBut.clicked.connect(self.connect_server)
         self.disconnectBut.clicked.connect(self.disconnect_server)
         self.sendBut.clicked.connect(self.send_message)
+        self.handleImageBut.clicked.connect(self.handle_image)
+        self.loadImageBut.clicked.connect(self.load_image)
         self.disconnectBut.setDisabled(True)
         self.sendBut.setDisabled(True)
+        self.loadImageBut.setDisabled(True)
+        self.handleImageBut.setDisabled(True)
 
     def connect_server(self):
         host = self.ipLine.text()
@@ -72,24 +80,30 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.sendBut.setDisabled(False)
             self.ipLine.setDisabled(True)
             self.portLine.setDisabled(True)
+            self.loadImageBut.setDisabled(False)
             self.chatTextEdit.append(f"Client connected: "
                                      f"{self.client.socket_client.getsockname()[0]}:"
-                                     f" {self.client.socket_client.getsockname()[1]}")
-            self.start_receiving()
+                                     f" {self.client.socket_client.getsockname()[1]}"
+                                     )
+            self.receiving()
         except ValueError:
             self.chatTextEdit.append("Sai địa chỉ IP")
         except ConnectionRefusedError:
-            self.chatTextEdit.append("Kết nối tới Server thất bại, kiểm tra lại IP và PORT")
+            self.chatTextEdit.append("Kết nối tới Server thất bại"
+                                     ", kiểm tra lại IP và PORT")
 
     def disconnect_server(self):
-        if self.client:
-            self.client.close()
-            self.chatTextEdit.append("Client disconnected")
+        self.client.socket_client.close()
+        self.chatTextEdit.append(f"Client disconnect...")
         self.connectBut.setDisabled(False)
         self.disconnectBut.setDisabled(True)
         self.sendBut.setDisabled(True)
         self.ipLine.setDisabled(False)
         self.portLine.setDisabled(False)
+        self.loadImageBut.setDisabled(True)
+        self.handleImageBut.setDisabled(True)
+        self.imageRawLab.clear()
+        self.imageDetectLab.clear()
 
     def send_message(self):
         message = self.sendLine.text()
@@ -98,26 +112,93 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
             return
         data = message.encode('utf-8')
         try:
+            self.client.socket_client.sendall(b'TXT')  # Gửi loại dữ liệu là văn bản
             self.client.socket_client.sendall(data)
             self.chatTextEdit.append(f"Me: {message}")
             self.sendLine.clear()
         except ConnectionResetError:
-            self.chatTextEdit.append("Kết nối đã bị ngắt, không thể gửi tin nhắn")
+            self.chatTextEdit.append("Kết nối đã bị ngắt, "
+                                     "không thể gửi tin nhắn")
             self.connectBut.setDisabled(False)
             self.disconnectBut.setDisabled(True)
             self.sendBut.setDisabled(True)
             self.ipLine.setDisabled(False)
             self.portLine.setDisabled(False)
+            self.loadImageBut.setDisabled(True)
+            self.handleImageBut.setDisabled(True)
+            self.imageRawLab.clear()
+            self.imageDetectLab.clear()
 
-    def start_receiving(self):
-        self.receive_thread = threading.Thread(target=self.client.receive_messages, args=(self.show_message,))
-        self.receive_thread.start()
+    def receiving(self):
+        self.receiving_thread = threading.Thread(target=self.client.handle_server, args=(self.get_message,))
+        self.receiving_thread.start()
 
-    def show_message(self, message):
-        self.chatTextEdit.append(f"Server: {message}")
+    def get_message(self, string):
+        self.chatTextEdit.append(f"Server: {string}")
 
-    def get_message(self):
-        pass
+    def load_image(self):
+        # Mở hộp thoại chọn tệp để tải ảnh
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getOpenFileName(self,
+                                                   "Open Image File",
+                                                   "",
+                                                   "Image Files (*.png *.jpg *.jpeg *.bmp);;All Files (*)",
+                                                   options=options)
+        if file_path:
+            # Tạo QPixmap từ tệp đã chọn và hiển thị trên QLabel
+            self.image_raw = cv2.imread(file_path)
+            send_image = threading.Thread(target=self.send_image, args=(self.image_raw,))
+            send_image.start()
+            image = cv2.cvtColor(self.image_raw, cv2.COLOR_BGR2RGB)
+            image_resize = cv2.resize(image, (self.imageRawLab.width(), self.imageRawLab.height()))
+            height, width, channel = image_resize.shape
+            bytes_per_line = 3 * width
+            self.qimage_raw = QImage(image_resize.data, width, height, bytes_per_line, QImage.Format_RGB888)
+            self.imageRawLab.setPixmap(QPixmap.fromImage(self.qimage_raw))
+        self.handleImageBut.setDisabled(False)
+
+    def handle_image(self):
+        self.imageDetectLab.clear()
+        model = YOLO("yolov8n.pt")
+        results = model(self.image_raw)
+        result = results[0]
+        detection_info = f"{result.boxes.shape[0]} đối tượng được nhận diện"
+        annotated_img = result.plot()
+        send_image = threading.Thread(target=self.send_image, args=(annotated_img,))
+        send_image.start()
+        annotated_img_rgb = cv2.cvtColor(annotated_img, cv2.COLOR_BGR2RGB)
+        image_resize = cv2.resize(annotated_img_rgb, (self.imageRawLab.width(), self.imageRawLab.height()))
+        height, width, channel = image_resize.shape
+        bytes_per_line = 3 * width
+        self.qimage_handle = QImage(image_resize.data, width, height, bytes_per_line, QImage.Format_RGB888)
+        self.imageDetectLab.setPixmap(QPixmap.fromImage(self.qimage_handle))
+        self.chatTextEdit.append(detection_info)
+
+    def send_image(self, image):
+        try:
+            # Gửi dấu hiệu rằng dữ liệu gửi là ảnh
+            self.client.socket_client.sendall(b'IMG')
+
+            # Mã hóa ảnh và gửi kích thước ảnh
+            _, buffer = cv2.imencode('.jpg', image)
+            image_data = buffer.tobytes()
+            image_size = len(image_data)
+            self.client.socket_client.sendall(image_size.to_bytes(4, byteorder='big'))
+
+            # Gửi dữ liệu ảnh
+            self.client.socket_client.sendall(image_data)
+        except ConnectionResetError:
+            self.chatTextEdit.append("Kết nối đã bị ngắt, không thể gửi ảnh")
+            self.connectBut.setDisabled(False)
+            self.disconnectBut.setDisabled(True)
+            self.sendBut.setDisabled(True)
+            self.ipLine.setDisabled(False)
+            self.portLine.setDisabled(False)
+            self.loadImageBut.setDisabled(True)
+            self.handleImageBut.setDisabled(True)
+            self.imageRawLab.clear()
+            self.imageDetectLab.clear()
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

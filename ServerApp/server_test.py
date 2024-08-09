@@ -1,6 +1,8 @@
 # CODE TEST
 import socket
 import threading
+import cv2
+import numpy as np
 from server_ui import Ui_MainWindow
 from PyQt5 import QtWidgets
 # from PyQt5 import QtCore, QtGui
@@ -96,6 +98,7 @@ class Server:
 class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainApp, self).__init__()
+        self.image = None
         self.selected_client_address = None
         self.setupUi(self)
         self.client_model = QStandardItemModel()
@@ -168,8 +171,8 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.sendLine.clear()
 
     def item_clicked(self,  index: QModelIndex):
-        self.selected_client_address = self.client_model.data(index, Qt.DisplayRole)
-        self.selected_client_address = tuple(self.selected_client_address.split(':'))
+        selected = self.client_model.data(index, Qt.DisplayRole)
+        self.selected_client_address = tuple(selected.split(':'))
         self.selected_client_address = (self.selected_client_address[0], int(self.selected_client_address[1]))
         print(f'You clicked on: {self.selected_client_address}')
 
@@ -179,13 +182,7 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         super().mousePressEvent(event)
         self.selected_client_address = None
 
-    def get_image(self):
-        pass
-
-    def set_image(self):
-        pass
-
-    def handle_image(self):
+    def load_image(self):
         pass
 
 
