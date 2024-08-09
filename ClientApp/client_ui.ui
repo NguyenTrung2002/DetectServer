@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>679</width>
-    <height>584</height>
+    <width>695</width>
+    <height>583</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,16 +65,23 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="sendImageBut">
+      <widget class="QPushButton" name="handleImageBut">
        <property name="text">
-        <string>Gửi ảnh</string>
+        <string>Xử lý ảnh</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="loadImageBut">
        <property name="text">
-        <string>Tải ảnh lên</string>
+        <string>Upload ảnh</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="sendImageBut">
+       <property name="text">
+        <string>Gửi ảnh server</string>
        </property>
       </widget>
      </item>

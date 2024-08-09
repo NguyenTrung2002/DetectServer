@@ -1,13 +1,18 @@
-#CODE HOÀN THIỆN (LÀM MẪU)
+# CODE SERVER
 import socket
 import threading
+import cv2
+import numpy as np
 from server_ui import Ui_MainWindow
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QListView
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QPixmap, QImage
 import sys
+from PyQt5.QtCore import Qt, QModelIndex
+
 
 class Server:
-    def __init__(self, host, port, update_client_list_callback, show_message_callback):
+    def __init__(self, host, port, update_client_list_callback, show_message_callback, show_image_callback):
         self.host = host
         self.port = port
         self.ip = socket.gethostbyname(host)
@@ -15,11 +20,12 @@ class Server:
         self.count = 0
         self.count_lock = threading.Lock()
         self.client_sockets = []
-        self.client_addresses = {}  # Dictionary to map client sockets to addresses
+        self.client_addresses = {}
         self.server_thread = None
         self.running = False
         self.update_client_list_callback = update_client_list_callback
         self.show_message_callback = show_message_callback
+        self.show_image_callback = show_image_callback  # Thêm thuộc tính này
 
     def connect_to_client(self):
         self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,14 +43,26 @@ class Server:
             self.client_addresses[client_socket] = client_address
             while self.running:
                 try:
-                    data = client_socket.recv(4096)
-                    if not data:
+                    # Nhận loại dữ liệu
+                    data_type = client_socket.recv(3).decode('utf-8')
+
+                    if data_type == 'IMG':
+                        # Xử lý ảnh
+                        self.receive_image(client_socket)
+                    elif data_type == 'TXT':
+                        # Xử lý dữ liệu văn bản
+                        data = client_socket.recv(4096)
+                        if not data:
+                            break
+                        string = data.decode('utf-8', 'backslashreplace')
+                        self.show_message_callback(client_address, string)
+                        print(f"{client_address}: {string}")
+                    else:
+                        print(f"Unknown data type received from {client_address}")
                         break
-                    string = data.decode('utf-8', 'backslashreplace')
-                    self.show_message_callback(client_address, string)
-                    print(f"{client_address}: {string}")
                 except (ConnectionResetError, ConnectionAbortedError, OSError):
                     break
+
             with self.count_lock:
                 self.count -= 1
                 print(f"{client_address} đã thoát, hiện tại còn {self.count} kết nối")
@@ -52,6 +70,28 @@ class Server:
                 del self.client_addresses[client_socket]
                 self.update_client_list_callback(client_address, False)
             client_socket.close()
+
+    def receive_image(self, client_socket):
+        # Nhận kích thước ảnh
+        image_size_data = client_socket.recv(4)
+        if not image_size_data:
+            return
+        image_size = int.from_bytes(image_size_data, byteorder='big')
+
+        # Nhận dữ liệu ảnh
+        image_data = bytearray()
+        while len(image_data) < image_size:
+            packet = client_socket.recv(image_size - len(image_data))
+            if not packet:
+                break
+            image_data.extend(packet)
+
+        # Chuyển đổi dữ liệu byte thành ảnh
+        if image_data:
+            nparr = np.frombuffer(image_data, np.uint8)
+            image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            # Gọi hàm hiển thị ảnh thông qua callback
+            self.show_image_callback(image)
 
     def start_server(self):
         self.running = True
@@ -80,49 +120,26 @@ class Server:
         self.socket_server = None
         print("\nĐã ngắt kết nối")
 
-    def send_message(self, message, target_client=None):
-        data = message.encode('utf-8')
-        if target_client:
-            thread_send = threading.Thread(target=self.send_to_client, args=(target_client, data))
-            thread_send.start()
-        else:
-            thread_send = threading.Thread(target=self.send_to_all_clients, args=(data,))
-            thread_send.start()
-
-    def send_to_client(self, client_socket, data):
-        try:
-            client_socket.sendall(data)
-            print(f"Đã gửi tin nhắn tới {client_socket.getpeername()}")
-        except socket.error as e:
-            print(f"Lỗi khi gửi tin nhắn tới {client_socket.getpeername()}: {e}")
-
-    def send_to_all_clients(self, data):
-        for client_socket in self.client_sockets:
-            try:
-                client_socket.sendall(data)
-                print(f"Đã gửi tin nhắn tới {client_socket.getpeername()}")
-            except socket.error as e:
-                print(f"Lỗi khi gửi tin nhắn tới {client_socket.getpeername()}: {e}")
-
 
 class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainApp, self).__init__()
+        self.selected_client_address = None
         self.setupUi(self)
         self.client_model = QStandardItemModel()
         self.connectedList.setModel(self.client_model)
-        self.connectedList.clicked.connect(self.on_client_selected)  # Event to handle client selection
-        self.selected_client = None
         self.disconnectBut.setDisabled(True)
         self.sendBut.setDisabled(True)
         self.server = Server(host=socket.gethostname(),
                              port=22222,
                              update_client_list_callback=self.update_client_list,
-                             show_message_callback=self.get_message)
+                             show_message_callback=self.get_message,
+                             show_image_callback=self.show_image)
         self.connectBut.clicked.connect(self.start_server)
         self.disconnectBut.clicked.connect(self.stop_server)
         self.sendBut.clicked.connect(self.send_message)
-        self.centralwidget.installEventFilter(self)  # Install event filter to detect click outside QListView
+        self.connectedList.setEditTriggers(QListView.NoEditTriggers)
+        self.connectedList.clicked.connect(self.item_clicked)
 
     def start_server(self):
         self.server.start()
@@ -142,7 +159,6 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
         address_str = f"{client_address[0]}:{client_address[1]}"
         if connected:
             item = QStandardItem(address_str)
-            item.setData(client_address)  # Store client address in item data
             self.client_model.appendRow(item)
             self.manaTextEdit.append(f"Client connected: {address_str}")
         else:
@@ -153,50 +169,53 @@ class MainApp(QtWidgets.QMainWindow, Ui_MainWindow):
                     break
             self.manaTextEdit.append(f"Client disconnected: {address_str}")
 
-    def on_client_selected(self, index):
-        item = self.client_model.itemFromIndex(index)
-        client_address = item.data()
-        for client_socket, address in self.server.client_addresses.items():
-            if address == client_address:
-                self.selected_client = client_socket
-                break
-
     def get_message(self, client_address, message):
         address_str = f"{client_address[0]}:{client_address[1]}"
         self.chatTextEdit.append(f"{address_str}: {message}")
 
     def send_message(self):
         message = self.sendLine.text()
+        data = message.encode('utf-8')
         if message == '':
             self.chatTextEdit.append("Vui lòng nhập tin nhắn muốn gửi")
             return
         if len(self.server.client_sockets) == 0:
             self.chatTextEdit.append("Không có kết nối nên không thể gửi")
             return
-        if self.selected_client:
-            self.server.send_message(message, target_client=self.selected_client)
-            self.chatTextEdit.append(f"Server to {self.selected_client.getpeername()}: {message}")
-        else:
-            self.server.send_message(message)
+        if self.selected_client_address is None:
+            for client_socket in self.server.client_sockets:
+                client_socket.sendall(b'TXT')
+                client_socket.sendall(data)
             self.chatTextEdit.append(f"Server: {message}")
-        self.sendLine.clear()
+            self.sendLine.clear()
+        else:
+            for client_socket, client_address in self.server.client_addresses.items():
+                if client_address == self.selected_client_address:
+                    client_socket.sendall(b'TXT')
+                    client_socket.sendall(data)
+                    self.chatTextEdit.append(f"Server{self.selected_client_address}: {message}")
+                    self.sendLine.clear()
 
-    def eventFilter(self, source, event):
-        if event.type() == QtCore.QEvent.MouseButtonPress:
-            if source is self.centralwidget:
-                if not self.connectedList.geometry().contains(event.pos()):
-                    self.connectedList.clearSelection()
-                    self.selected_client = None
-        return super(MainApp, self).eventFilter(source, event)
+    def show_image(self, image):
+        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image_resize = cv2.resize(image_rgb, (self.imageRawLab.width(), self.imageRawLab.height()))
+        height, width, channel = image_resize.shape
+        bytes_per_line = 3 * width
+        qimage = QImage(image_resize.data, width, height, bytes_per_line, QImage.Format_RGB888)
+        self.imageRawLab.setPixmap(QPixmap.fromImage(qimage))
+        self.manaTextEdit.append("Ảnh đã được nhận và hiển thị")
 
-    def get_image(self):
-        pass
+    def item_clicked(self, index: QModelIndex):
+        selected = self.client_model.data(index, Qt.DisplayRole)
+        self.selected_client_address = tuple(selected.split(':'))
+        self.selected_client_address = (self.selected_client_address[0], int(self.selected_client_address[1]))
+        print(f'You clicked on: {self.selected_client_address}')
 
-    def set_image(self):
-        pass
-
-    def handle_image(self):
-        pass
+    def mousePressEvent(self, event):
+        if not self.connectedList.geometry().contains(event.pos()):
+            self.connectedList.clearSelection()
+        super().mousePressEvent(event)
+        self.selected_client_address = None
 
 
 if __name__ == '__main__':
