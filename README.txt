@@ -13,4 +13,4 @@ Bước 1: pip install virtualenv
 Bước 2: Di chuyển đến thư mục nơi bạn muốn tạo môi trường ảo
 Bước 3: virtualenv myenv
 Bước 4: myenv\Scripts\activate
-#################################################################
+##################################################################
